@@ -19,7 +19,7 @@ uploaded_files = st.file_uploader("เลือกรูปภาพ (รอง�
 if uploaded_files and api_key:
     if st.button("🚀 สแกนรูปภาพและสร้างตาราง Excel"):
         results = []
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash-latest')
         
         with st.spinner("กำลังประมวลผลรูปภาพ..."):
             for idx, uploaded_file in enumerate(uploaded_files, start=1):
