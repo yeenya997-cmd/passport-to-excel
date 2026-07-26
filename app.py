@@ -19,30 +19,27 @@ uploaded_files = st.file_uploader("เลือกรูปภาพ (รอง�
 if uploaded_files and api_key:
     if st.button("🚀 สแกนรูปภาพและสร้างตาราง Excel"):
         results = []
-        model = genai.GenerativeModel('models/gemini-1.5-flash')
         
+        # เลือกโมเดลอัตโนมัติจากรายการที่ API Key นี้ใช้งานได้
+        try:
+            available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+            # เลือกโมเดล flash ตัวแรกที่พบ หรือใช้ตัวเริ่มต้น
+            model_name = next((m for m in available_models if 'flash' in m), available_models[0] if available_models else 'gemini-1.5-flash')
+            model = genai.GenerativeModel(model_name)
+        except Exception as e:
+            model = genai.GenerativeModel('gemini-1.5-flash')
+
         with st.spinner("กำลังประมวลผลรูปภาพ..."):
             for idx, uploaded_file in enumerate(uploaded_files, start=1):
                 image = Image.open(uploaded_file)
-                prompt = """
-                Extract data from this document into JSON format with keys:
-                - surname
-                - given_names
-                - doc_number
-                - dob
-                - sex
-                """
+                prompt = "Extract text data from this passport or ID card."
                 
                 try:
                     response = model.generate_content([prompt, image])
-                    # Parse simplified mock structure for demonstration
                     results.append({
                         "ลำดับ (No.)": idx,
-                        "นามสกุล (Surname)": "Extracted Data",
-                        "ชื่อ (Given Names)": uploaded_file.name,
-                        "เลขเอกสาร (ID / Passport No.)": "-",
-                        "วันเกิด (Date of Birth)": "-",
-                        "เพศ (Sex)": "-"
+                        "ชื่อไฟล์": uploaded_file.name,
+                        "ข้อมูลที่สแกนได้": response.text
                     })
                 except Exception as e:
                     st.error(f"เกิดข้อผิดพลาดกับไฟล์ {uploaded_file.name}: {e}")
@@ -64,4 +61,4 @@ if uploaded_files and api_key:
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             )
 elif not api_key:
-    st.info("💡 กรุณากรอง Gemini API Key ที่แถบเมนูด้านซ้ายก่อนเริ่มต้นใช้งาน")
+    st.info("💡 กรุณากรอก Gemini API Key ที่แถบเมนูด้านซ้ายก่อนเริ่มต้นใช้งาน")
